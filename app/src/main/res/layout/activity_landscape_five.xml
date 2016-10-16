@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    tools:context="com.example.krohn.lab1completed.MainActivity"
+    android:weightSum="1"
+    android:baselineAligned="false">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:id="@+id/layout_cards_and_table"
+        android:layout_weight=".7">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:id="@+id/layout_table_and_score">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="144dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.37"
+                android:weightSum="1"
+                android:id="@+id/layout_trump_and_table">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="0.45"
+                    android:id="@+id/layout_trump"
+                    android:background="@android:color/holo_blue_light">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/image_trumpCard"
+                        android:scaleType="fitCenter" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:id="@+id/frameLayout"
+                    android:layout_weight=".55" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:id="@+id/layout_scoreboard"
+                android:background="@drawable/scoreboard_border">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="New Text"
+                    android:id="@+id/text_score1"
+                    android:layout_weight=".2" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="New Text"
+                    android:id="@+id/text_score2"
+                    android:layout_weight=".2" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="New Text"
+                    android:id="@+id/text_score3"
+                    android:layout_weight=".2" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="New Text"
+                    android:id="@+id/text_score4"
+                    android:layout_weight=".2" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="New Text"
+                    android:id="@+id/text_score5"
+                    android:layout_weight=".2" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/layout_cards"
+            android:layout_weight="1.69"
+            android:background="#ffffff">
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card1"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card2"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card3"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card4"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="New Text"
+                android:id="@+id/image_card5"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card6"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card7"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card8"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card9"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/image_card10"
+                android:src="@drawable/s1"
+                android:layout_weight=".1"
+                android:onClick="changeBackground" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:id="@+id/layout_chat"
+        android:layout_weight=".3"
+        android:background="#c2dee8">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/scrollView_chat"
+            android:layout_weight="4.10">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/text_chat" />
+        </ScrollView>
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:id="@+id/editText_chat"
+            android:hint="Enter text here"
+            android:layout_weight="1" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:text="Send"
+            android:id="@+id/button_sendText"
+            android:layout_weight="1"
+            android:onClick="addChat"
+            android:background="#45bbe7" />
+
+    </LinearLayout>
+</LinearLayout>
