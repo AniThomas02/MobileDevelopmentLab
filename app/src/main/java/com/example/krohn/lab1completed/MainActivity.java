@@ -19,9 +19,10 @@ import java.util.Random;
 
 import static com.example.krohn.lab1completed.R.id.*;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BiddingFragment.OnFragmentInteractionListener, TableFragment.OnFragmentInteractionListener {
     private ImageView selected;
     private int tablePlace;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +31,11 @@ public class MainActivity extends AppCompatActivity {
         } else {
             setContentView(R.layout.activity_portrait_five);
         }
+
+        BiddingFragment biddingFragment = new BiddingFragment();
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.table_Frame, biddingFragment);
+        fragmentTransaction.commit();
 
         //get cards and hand views into arrays
         TypedArray cards = getResources().obtainTypedArray(R.array.my_cards);
@@ -52,15 +58,21 @@ public class MainActivity extends AppCompatActivity {
             ((ImageView)findViewById(hand.getResourceId(num, 0))).setImageResource(cards.getResourceId(spot, 0));
         }
 
-        BiddingFragment biddingFragment = new BiddingFragment();
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.frag_container, biddingFragment);
-        fragmentTransaction.commit();
-
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         selected = null;
     }
 
+    //User makes a bid using the biddingFragment
+    public void makeBid(int bid){
+
+    }
+
+    //Add a card to the tableFragment
+    public void addToTable(int card){
+
+    }
+
+    //Add a chat into the
     public void addChat(View v){
         //add the text to the correct location and clear out the edittext
         EditText text = (EditText) findViewById(R.id.editText_chat);
