@@ -85,12 +85,12 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
     public void changeBackground(View v){
         if(selected == null){
             //if no card were chosen yet
-            v.setBackgroundColor(Color.rgb(50, 100, 50));
+            v.setBackgroundColor(Color.parseColor("#33b5e5"));
             selected = (ImageView)v;
         } else {
             if((ImageView)v == selected){
                 //chose a selected card
-                v.setBackgroundColor(0);
+                v.setBackgroundColor(Color.parseColor("#5360ae"));
                 selected = null;
 
                 //copy card from hand to table
@@ -104,8 +104,8 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                 tablePlace++;
             } else{
                 //chose a new card
-                selected.setBackgroundColor(0);
-                v.setBackgroundColor(Color.rgb(50, 100, 50));
+                selected.setBackgroundColor(Color.parseColor("#5360ae"));
+                v.setBackgroundColor(Color.parseColor("#33b5e5"));
                 selected = (ImageView)v;
             }
         }

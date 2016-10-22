@@ -9,17 +9,27 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/layout_bidding">
+        android:id="@+id/layout_bidding"
+        android:weightSum="1">
 
-        <TextView
+        <Spinner
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Place you bet here"
-            android:id="@+id/textView_bid"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinner_bid"
             android:layout_gravity="center_horizontal"
-            android:textAlignment="center"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="2dp" />
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:backgroundTint="#6a75b9"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="0.05" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Bid"
+            android:id="@+id/button_bid"
+            android:background="#45bbe7" />
     </LinearLayout>
 
 </FrameLayout>

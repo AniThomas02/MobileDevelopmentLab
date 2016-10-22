@@ -32,18 +32,31 @@
                 android:id="@+id/layout_trump_and_table">
 
                 <LinearLayout
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="0.45"
                     android:id="@+id/layout_trump"
-                    android:background="@android:color/holo_blue_light">
+                    android:background="#45bbe7">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Trump:"
+                        android:id="@+id/textView_trump"
+                        android:textStyle="bold"
+                        android:textColor="#000000"
+                        android:paddingLeft="4dp"
+                        android:layout_gravity="center_vertical" />
 
                     <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:id="@+id/image_trumpCard"
-                        android:scaleType="fitCenter" />
+                        android:scaleType="fitCenter"
+                        android:layout_gravity="center"
+                        android:layout_marginLeft="4dp" />
                 </LinearLayout>
 
                 <FrameLayout
@@ -108,7 +121,7 @@
             android:layout_height="0dp"
             android:id="@+id/layout_cards"
             android:layout_weight="1.69"
-            android:background="#ffffff">
+            android:background="#5360ae">
 
             <ImageView
                 android:layout_width="0dp"
