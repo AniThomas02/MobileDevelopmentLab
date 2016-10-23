@@ -29,7 +29,8 @@
             android:layout_height="wrap_content"
             android:text="Bid"
             android:id="@+id/button_bid"
-            android:background="#45bbe7" />
+            android:background="#45bbe7"
+            android:onClick="userBid" />
     </LinearLayout>
 
 </FrameLayout>

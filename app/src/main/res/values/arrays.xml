@@ -75,4 +75,12 @@
         <item>@id/image_table_card4</item>
         <item>@id/image_table_card5</item>
     </integer-array>
+
+    <integer-array name="scoring_table">
+        <item>@id/text_score1</item>
+        <item>@id/text_score2</item>
+        <item>@id/text_score3</item>
+        <item>@id/text_score4</item>
+        <item>@id/text_score5</item>
+    </integer-array>
 </resources>
