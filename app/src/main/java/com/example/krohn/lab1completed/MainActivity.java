@@ -18,12 +18,16 @@ import android.graphics.Color;
 import java.util.ArrayList;
 import java.util.Random;
 
+import layout.BiddingFragment;
+import layout.TableFragment;
+
 import static com.example.krohn.lab1completed.R.id.*;
 
 public class MainActivity extends AppCompatActivity implements BiddingFragment.OnFragmentInteractionListener, TableFragment.OnFragmentInteractionListener {
     private ImageView selected;
-    private int tablePlace, scoringPlace;
-    private boolean biddingPhase = true;
+    private int tablePlace;
+    private boolean bidding = true;
+    private BiddingFragment biddingFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,39 +59,21 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
             ((ImageView)findViewById(hand.getResourceId(num, 0))).setImageResource(cards.getResourceId(spot, 0));
         }
 
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        selected = null;
+
         //create the bidding fragment
-        BiddingFragment biddingFragment = new BiddingFragment();
+        biddingFragment = new BiddingFragment();
+        biddingFragment.setArguments(getIntent().getExtras());
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.table_Frame, biddingFragment);
         fragmentTransaction.commit();
-
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-        selected = null;
     }
 
     @Override
-    protected void onResume(){
-        super.onResume();
-        //get spinner to fill with cards
-        Spinner biddingSpinner = (Spinner) findViewById(R.id.spinner_bid);
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        biddingSpinner.setAdapter(spinnerAdapter);
-        spinnerAdapter.add("Choose a value to bid");
-        for(int i = 0; i <= 10; i++){
-            spinnerAdapter.add(i + "");
-        }
-        spinnerAdapter.notifyDataSetChanged();
-    }
-
-    //User makes a bid using the biddingFragment
-    public void makeBid(int bid){
-
-    }
-
-    //Add a card to the tableFragment
-    public void addToTable(int card){
-
+    public void onStart(){
+        super.onStart();
+        biddingFragment.addValues(10);
     }
 
     //Add a chat into the
@@ -101,11 +87,8 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
     }
 
     public void userBid(View v){
-        Spinner bidSpinner = (Spinner) findViewById(R.id.spinner_bid);
-        String selectedBid = bidSpinner.getSelectedItem().toString();
-        TypedArray score = getResources().obtainTypedArray(R.array.scoring_table);
-        ((TextView)findViewById(score.getResourceId(scoringPlace, 0))).setText(selectedBid);
-        scoringPlace++;
+        String selectedBid = ((Spinner)findViewById(R.id.spinner_bid)).getSelectedItem().toString();;
+        ((TextView)findViewById(R.id.text_score1)).setText(selectedBid);
 
         //switch the bidding screen to the table
         TableFragment tableFragment = TableFragment.newInstance();
@@ -113,11 +96,11 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
         fragmentTransaction.replace(R.id.table_Frame, tableFragment);
         fragmentTransaction.commit();
         //ensure that the bidding phase is over
-        biddingPhase = false;
+        bidding = false;
 }
 
     public void changeBackground(View v){
-        if(!biddingPhase) {
+        if(!bidding) {
             if (selected == null) {
                 //if no card were chosen yet
                 v.setBackgroundColor(Color.parseColor("#33b5e5"));

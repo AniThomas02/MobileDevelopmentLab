@@ -1,16 +1,10 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.krohn.lab1completed.BiddingFragment">
-
-    <!-- TODO: Update blank fragment layout -->
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/layout_bidding"
-        android:weightSum="1">
+    android:id="@+id/layout_bidding"
+    android:weightSum="1"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="bottom">
 
         <Spinner
             android:layout_width="match_parent"
@@ -32,5 +26,3 @@
             android:background="#45bbe7"
             android:onClick="userBid" />
     </LinearLayout>
-
-</FrameLayout>

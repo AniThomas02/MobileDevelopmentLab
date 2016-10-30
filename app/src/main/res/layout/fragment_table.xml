@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.krohn.lab1completed.TableFragment">
+    tools:context="layout.TableFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <LinearLayout
