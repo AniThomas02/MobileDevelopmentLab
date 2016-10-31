@@ -2,6 +2,9 @@
     <string name="app_name">Lab 2</string>
     <string name="edit_message">Enter a value!</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_main">Card Game</string>
+
+    <string name="login_description">A card game that can be played with 4–5 people.</string>
+    <string name="passwords_description">Passwords must be at least 6 characters with both uppercase and lowercase letters as well as contain a number.</string>
 </resources>
