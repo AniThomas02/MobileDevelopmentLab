@@ -21,8 +21,8 @@
         <Button
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Bid"
+            android:text="@string/bid_text"
             android:id="@+id/button_bid"
             android:background="#45bbe7"
-            android:onClick="userBid" />
+            android:onClick="makeBid" />
     </LinearLayout>

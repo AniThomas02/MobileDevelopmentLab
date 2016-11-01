@@ -3,6 +3,7 @@ package com.example.krohn.lab1completed;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -51,10 +52,10 @@ public class LoginActivity extends AppCompatActivity{
 
     public void onCheckboxClicked(View view) {
         if(((CheckBox) view).isChecked()){
-            ((Button) findViewById(R.id.button_login)).setText("Register");
+            ((Button) findViewById(R.id.button_login)).setText(R.string.register_checkbox);
             isRegistering = true;
         }else{
-            ((Button) findViewById(R.id.button_login)).setText("Login");
+            ((Button) findViewById(R.id.button_login)).setText(R.string.login_checkbox);
             isRegistering = false;
         }
     }
@@ -71,15 +72,13 @@ public class LoginActivity extends AppCompatActivity{
 
     private void attemptRegister(String username, String password) {
         if(isUsernameValid(username) && isPasswordValid(password)){
-            Toast.makeText(getApplicationContext(), "Registered!", Toast.LENGTH_SHORT).show();
+            sendToGame(username);
         }
     }
 
     private void attemptLogin(String username, String password) {
         if(username.equals("Erik") && password.equals("Krohn1")){
-            Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_SHORT).show();
-        }else{
-            Toast.makeText(getApplicationContext(), "Incorrect username or password. Login unsuccessful.", Toast.LENGTH_SHORT).show();
+            sendToGame(username);
         }
     }
 
@@ -99,6 +98,13 @@ public class LoginActivity extends AppCompatActivity{
             Toast.makeText(getApplicationContext(), "Error with password. Check password requirements and try again.", Toast.LENGTH_SHORT).show();
             return false;
         }
+    }
+
+    private void sendToGame(String username){
+        Intent gameIntent = new Intent(this, MainActivity.class);
+        gameIntent.putExtra("user", username);
+        startActivity(gameIntent);
+        finish();
     }
 }
 

@@ -1,5 +1,6 @@
 package com.example.krohn.lab1completed;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.support.v4.app.FragmentTransaction;
@@ -7,13 +8,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.graphics.Color;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -24,6 +25,7 @@ import layout.TableFragment;
 import static com.example.krohn.lab1completed.R.id.*;
 
 public class MainActivity extends AppCompatActivity implements BiddingFragment.OnFragmentInteractionListener, TableFragment.OnFragmentInteractionListener {
+    public String MY_USERNAME = "Player1";
     private ImageView selected;
     private int tablePlace;
     private boolean bidding = true;
@@ -38,7 +40,13 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
             setContentView(R.layout.activity_portrait_five);
         }
 
-        //get cards and hand views into arrays
+        //Get the username and put in scoreboard
+        Intent gameIntent = getIntent();
+        MY_USERNAME = gameIntent.getStringExtra("user");
+        TextView myScore = (TextView) findViewById(R.id.text_score1);
+        myScore.setText(MY_USERNAME);
+
+        //Get cards and hand views into arrays
         TypedArray cards = getResources().obtainTypedArray(R.array.my_cards);
         TypedArray hand = getResources().obtainTypedArray(R.array.my_hand);
 
@@ -74,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
     public void onStart(){
         super.onStart();
         biddingFragment.addValues(10);
+        Toast.makeText(getApplicationContext(), "Welcome, " + MY_USERNAME + "!", Toast.LENGTH_SHORT).show();
     }
 
     //Add a chat into the
@@ -83,12 +92,14 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
         String addText = text.getText().toString();
         text.setText("");
         TextView chatWindow = (TextView) findViewById(text_chat);
-        chatWindow.append("Player: " + addText + "\n");
+        chatWindow.append(MY_USERNAME + ": " + addText + "\n");
     }
 
-    public void userBid(View v){
-        String selectedBid = ((Spinner)findViewById(R.id.spinner_bid)).getSelectedItem().toString();;
-        ((TextView)findViewById(R.id.text_score1)).setText(selectedBid);
+    public void makeBid(View v){
+        String selectedBid = ((Spinner)findViewById(R.id.spinner_bid)).getSelectedItem().toString();
+        TextView myScore = (TextView) findViewById(R.id.text_score1);
+        String message = MY_USERNAME + "\n" + selectedBid;
+        myScore.setText(message);
 
         //switch the bidding screen to the table
         TableFragment tableFragment = TableFragment.newInstance();
@@ -106,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                 v.setBackgroundColor(Color.parseColor("#33b5e5"));
                 selected = (ImageView) v;
             } else {
-                if ((ImageView) v == selected) {
+                if (v == selected) {
                     //chose a selected card
                     v.setBackgroundColor(Color.parseColor("#5360ae"));
                     selected = null;

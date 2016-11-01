@@ -7,4 +7,13 @@
 
     <string name="login_description">A card game that can be played with 4–5 people.</string>
     <string name="passwords_description">Passwords must be at least 6 characters with both uppercase and lowercase letters as well as contain a number.</string>
+    <string name="login_button">Login</string>
+    <string name="card_logo">Card logo</string>
+    <string name="new_user_checkbox">New User?</string>
+    <string name="enter_username_text">Enter Username</string>
+    <string name="password_hint">Password</string>
+    <string name="ani_card_game_text">Ani\'s Card Game</string>
+    <string name="bid_text">Bid</string>
+    <string name="register_checkbox">Register</string>
+    <string name="login_checkbox">Login</string>
 </resources>
