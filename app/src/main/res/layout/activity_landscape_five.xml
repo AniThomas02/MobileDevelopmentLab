@@ -43,7 +43,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:text="Trump:"
+                        android:text="@string/trump_text"
                         android:id="@+id/textView_trump"
                         android:textStyle="bold"
                         android:textColor="#000000"
@@ -56,7 +56,9 @@
                         android:id="@+id/image_trumpCard"
                         android:scaleType="fitCenter"
                         android:layout_gravity="center"
-                        android:layout_marginLeft="4dp" />
+                        android:layout_marginLeft="4dp"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="@string/trump_description" />
                 </LinearLayout>
 
                 <FrameLayout
@@ -80,7 +82,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Player1"
+                    android:text=""
                     android:id="@+id/text_score1"
                     android:layout_weight=".2"
                     android:textAlignment="center" />
@@ -88,7 +90,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Player2"
+                    android:text=""
                     android:id="@+id/text_score2"
                     android:layout_weight=".2"
                     android:textAlignment="center" />
@@ -96,7 +98,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Player3"
+                    android:text=""
                     android:id="@+id/text_score3"
                     android:layout_weight=".2"
                     android:textAlignment="center" />
@@ -104,7 +106,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Player4"
+                    android:text=""
                     android:id="@+id/text_score4"
                     android:layout_weight=".2"
                     android:textAlignment="center" />
@@ -112,7 +114,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Player5"
+                    android:text=""
                     android:id="@+id/text_score5"
                     android:layout_weight=".2"
                     android:textAlignment="center"

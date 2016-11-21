@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">Lab 2</string>
+    <string name="app_name">Card Game</string>
     <string name="edit_message">Enter a value!</string>
 
-    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_login">Card Game</string>
     <string name="title_activity_main">Card Game</string>
 
     <string name="login_description">A card game that can be played with 4–5 people.</string>
@@ -16,4 +16,6 @@
     <string name="bid_text">Bid</string>
     <string name="register_checkbox">Register</string>
     <string name="login_checkbox">Login</string>
+    <string name="trump_description">trump</string>
+    <string name="trump_text">Trump:</string>
 </resources>
