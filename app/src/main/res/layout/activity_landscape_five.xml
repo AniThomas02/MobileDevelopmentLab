@@ -135,7 +135,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card1"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -143,7 +142,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card2"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -151,7 +149,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card3"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -159,7 +156,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card4"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -168,7 +164,6 @@
                 android:layout_height="wrap_content"
                 android:text="New Text"
                 android:id="@+id/image_card5"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -176,7 +171,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card6"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -184,7 +178,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card7"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -192,7 +185,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card8"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -200,7 +192,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card9"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
 
@@ -208,7 +199,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_card10"
-                android:src="@drawable/s1"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
         </LinearLayout>

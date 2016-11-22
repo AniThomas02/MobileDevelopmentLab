@@ -45,8 +45,12 @@ public class LoginActivity extends AppCompatActivity{
 
     private void attemptRegister(String username, String password) {
         if(isUsernameValid(username) && isPasswordValid(password)){
-            if(addUserInformation(username, password) > -1){
-                sendToGame(username);
+            if(!username.equals(getUsernameFromDatabase(username))){
+                if(addUserInformation(username, password) > -1){
+                    sendToGame(username);
+                }
+            }else{
+                Toast.makeText(getApplicationContext(), "Username is already taken.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -102,13 +106,32 @@ public class LoginActivity extends AppCompatActivity{
         return db.insert(MyDBContract.DBEntry.TABLE_NAME, null, values);
     }
 
+    private String getUsernameFromDatabase(String username){
+        MyDBContract.MyDbHelper myDbHelper = new MyDBContract.MyDbHelper(getApplicationContext());
+        SQLiteDatabase rdb = myDbHelper.getReadableDatabase();
+        String selection = MyDBContract.DBEntry.COLUMN_NAME_USERNAME + " LIKE ?";
+        String[] selectionArgs = {username};
+        String[] projection = {MyDBContract.DBEntry.COLUMN_NAME_USERNAME};
+        Cursor cursor = rdb.query(MyDBContract.DBEntry.TABLE_NAME,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null);
+        String existingUser = "";
+        if(cursor.moveToFirst()){
+            existingUser = cursor.getString(cursor.getColumnIndexOrThrow(MyDBContract.DBEntry.COLUMN_NAME_USERNAME));
+        }
+        return existingUser;
+    }
+
     private boolean checkUserInformation(String username, String password){
         MyDBContract.MyDbHelper myDbHelper = new MyDBContract.MyDbHelper(getApplicationContext());
         SQLiteDatabase rdb = myDbHelper.getReadableDatabase();
         String selection = MyDBContract.DBEntry.COLUMN_NAME_USERNAME + " LIKE ?";
         String[] selectionArgs = {username};
-        String[] projection = {MyDBContract.DBEntry.COLUMN_NAME_USERNAME,
-                                MyDBContract.DBEntry.COLUMN_NAME_PASSWORD};
+        String[] projection = {MyDBContract.DBEntry.COLUMN_NAME_PASSWORD};
         Cursor cursor = rdb.query(MyDBContract.DBEntry.TABLE_NAME,
                                     projection,
                                     selection,
@@ -116,18 +139,16 @@ public class LoginActivity extends AppCompatActivity{
                                     null,
                                     null,
                                     null);
-        if(!cursor.moveToFirst()){
-            String tempUser = cursor.getString(cursor.getColumnIndexOrThrow(
-                    MyDBContract.DBEntry.COLUMN_NAME_USERNAME));
+        if(cursor.moveToFirst()){
             String tempPassword = cursor.getString(cursor.getColumnIndexOrThrow(MyDBContract.DBEntry.COLUMN_NAME_PASSWORD));
-            if(tempUser.equals(username) && tempPassword.equals(password)){
-                return true;
-            }else{
-                Toast.makeText(getApplicationContext(), "Username or password do not match. Please try again.", Toast.LENGTH_SHORT).show();
+            if(!tempPassword.equals(password)){
+                Toast.makeText(getApplicationContext(), "Password is incorrect.", Toast.LENGTH_SHORT).show();
                 return false;
+            }else{
+                return true;
             }
         }else{
-            Toast.makeText(getApplicationContext(), "Cannot find user by that name.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "No user found by that name.", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
