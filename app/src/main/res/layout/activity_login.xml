@@ -57,7 +57,7 @@
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/layout_login">
 
             <CheckBox
@@ -103,6 +103,14 @@
                 android:text="@string/passwords_description"
                 android:id="@+id/textView_password_description"
                 android:textAlignment="center" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:layout_marginBottom="5dp"
+            android:id="@+id/layout_login_button">
 
             <Button
                 android:layout_width="fill_parent"

@@ -77,10 +77,10 @@
     </integer-array>
 
     <integer-array name="scoring_table">
-        <item>@id/text_score1</item>
-        <item>@id/text_score2</item>
-        <item>@id/text_score3</item>
-        <item>@id/text_score4</item>
-        <item>@id/text_score5</item>
+        <item>@id/list_score1</item>
+        <item>@id/list_score2</item>
+        <item>@id/list_score3</item>
+        <item>@id/list_score4</item>
+        <item>@id/list_score5</item>
     </integer-array>
 </resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5sp">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="PlayerName: "
+        android:id="@+id/text_chat_player"
+        android:layout_marginLeft="4sp"
+        android:layout_weight=".3"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="16sp"
+        android:textAlignment="textEnd" />
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/text_chat_content"
+        android:layout_weight=".7"
+        android:textColor="#000000"
+        android:textSize="16sp"/>
+</LinearLayout>

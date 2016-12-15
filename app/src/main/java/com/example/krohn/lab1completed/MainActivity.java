@@ -2,169 +2,246 @@ package com.example.krohn.lab1completed;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.content.res.TypedArray;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.ImageView;
-import android.graphics.Color;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
-import java.util.Random;
 
 import layout.BiddingFragment;
+import layout.ChatFragment;
 import layout.TableFragment;
 
-import static com.example.krohn.lab1completed.R.id.*;
+public class MainActivity extends AppCompatActivity implements BiddingFragment.OnFragmentInteractionListener {
+    private RequestQueue mainRequestQueue;
+    //instance variables - players
+    private Player currPlayer;
+    private ArrayList<Player> opponents;
+    //private ImageView selected;
 
-public class MainActivity extends AppCompatActivity implements BiddingFragment.OnFragmentInteractionListener, TableFragment.OnFragmentInteractionListener {
-    //instance variables
-    public String currUser = "";
-    private ImageView selected;
-    private int trumpId;
-    private boolean bidding = true;
+    //gameStatus: 0 = waiting for players, 1 = bidding, 2 = playing cards
+    private Game currGame;
+
+    //table instance variables
+    private Card trumpCard;
+    private ArrayList<Card> currTableCards;
+    private ArrayList<Card> currTableDeck;
+    private ArrayList<String> chatLog;
     private BiddingFragment biddingFragment;
     private TableFragment tableFragment;
-    private ArrayList<Integer> currHand = new ArrayList<>();
-    private ArrayList<Integer> currDeck = new ArrayList<>();
-    private ArrayList<Integer> currTable = new ArrayList<>();
-    private String currScore = "";//new ArrayList<>();
-    private String chatLog = "";
+    private ChatFragment chatFragment;
+
+    //bidding
+    private int biddingNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE) {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             setContentView(R.layout.activity_landscape_five);
         } else {
             setContentView(R.layout.activity_portrait_five);
         }
 
-        if(savedInstanceState == null){
-            //Get the username and put in scoreboard
+        if (savedInstanceState == null) {
             Intent gameIntent = getIntent();
-            currUser = gameIntent.getStringExtra("user");
-            TextView myScore = (TextView) findViewById(R.id.text_score1);
-            myScore.setText(currUser);
-            currScore = currUser;
+            //get player and game from intent
+            currPlayer = (Player) gameIntent.getSerializableExtra("player");
+            currPlayer.scores.add(currPlayer.name);
+            currGame = (Game) gameIntent.getSerializableExtra("game");
 
-            //drawable resources
-            TypedArray cardResources = getResources().obtainTypedArray(R.array.my_cards);
-            TypedArray handResources = getResources().obtainTypedArray(R.array.my_hand);
+            getOpponents();
 
-            //Full Deck of cards to draw from
-            currDeck = new ArrayList<>();
-            for(int i= 0; i < 52; i++){
-                currDeck.add(i);
-            }
+            //start status 0, because anytime you join a game it will be 0 until you update
+            currTableCards = new ArrayList<>();
+            currTableDeck = new ArrayList<>();
 
-            //get the trump card
-            Random r = new Random();
-            trumpId = r.nextInt(currDeck.size());
-            ((ImageView)findViewById(R.id.image_trumpCard)).setImageResource(cardResources.getResourceId(trumpId, 0));
-            //get the hand
-            for(int num = 0; num < 10; num++){
-                int temp = r.nextInt(currDeck.size());
-                currHand.add(currDeck.get(temp)); //Add to the current hand
-                currDeck.remove(Integer.valueOf(temp)); //Want to remove the Integer 7, not spot 7.
-                ((ImageView)findViewById(handResources.getResourceId(num, 0))).setImageResource(cardResources.getResourceId(temp, 0));
-                (findViewById(handResources.getResourceId(num, 0))).setTag(temp);
-            }
-            //welcome the new user
-            Toast.makeText(getApplicationContext(), "Welcome, " + currUser + "!", Toast.LENGTH_SHORT).show();
-        }else{
+            chatLog = new ArrayList<>();
+            getChatLog();
+        } else {
             //grab all saved variables
-            currUser = savedInstanceState.getString("username");
-            trumpId = savedInstanceState.getInt("trumpCard");
-            bidding = savedInstanceState.getBoolean("bidding");
-            currHand = savedInstanceState.getIntegerArrayList("currHand");
-            currDeck = savedInstanceState.getIntegerArrayList("currDeck");
-            currTable = savedInstanceState.getIntegerArrayList("currTable");
-            currScore = savedInstanceState.getString("currScore");
-            chatLog = savedInstanceState.getString("chatLog");
+            currPlayer = (Player) savedInstanceState.getSerializable("currPlayer");
+            opponents = (ArrayList<Player>) savedInstanceState.getSerializable("opponents");
+            currGame = (Game) savedInstanceState.getSerializable("currGame");
+            trumpCard = (Card) savedInstanceState.getSerializable("trumpCard");
+            currTableCards = (ArrayList<Card>) savedInstanceState.getSerializable("currTableCards");
+            currTableDeck = (ArrayList<Card>) savedInstanceState.getSerializable("currTableDeck");
+            chatLog = savedInstanceState.getStringArrayList("chatLog");
+            if (currGame.status == 1) {
+                biddingNumber = savedInstanceState.getInt("biddingNumber");
+            }
         }
-        //figure out which fragment needs to be created
-        if(bidding){
+        Toast.makeText(getApplicationContext(), "Welcome, " + currPlayer.name + "!", Toast.LENGTH_SHORT).show();
+
+        if(currGame.status == 0){
+            TextView trump = (TextView) findViewById(R.id.textView_trump);
+            trump.setText("Waiting for players...");
+        }else if(currGame.status == 1){
             //create the bidding fragment
             biddingFragment = new BiddingFragment();
             biddingFragment.setArguments(getIntent().getExtras());
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.add(R.id.table_Frame, biddingFragment);
+            fragmentTransaction.add(R.id.frame_layout_table, biddingFragment);
             fragmentTransaction.commit();
-        }else{
+        }else if(currGame.status == 2){
             tableFragment = TableFragment.newInstance();
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.table_Frame, tableFragment);
+            fragmentTransaction.replace(R.id.frame_layout_table, tableFragment);
             fragmentTransaction.commit();
         }
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-        selected = null;
+    }
+
+    private void getChatLog(){
+        try {
+            if(mainRequestQueue == null){
+                mainRequestQueue = Volley.newRequestQueue(getApplicationContext());
+            }
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/getChatLog.php";
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                if(response != null){
+                                    JSONArray chatLogResponse = response.getJSONArray("array");
+                                    for(int i =0; i < chatLogResponse.length(); i++){
+                                        chatLog.add(chatLogResponse.getString(i));
+                                    }
+                                }
+                            } catch(Exception ex) {
+                                System.out.println(ex.toString());
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.i("MainActivity", error.toString());
+                            System.out.println("Error");
+                        }
+                    });
+            mainRequestQueue.add(jsObjRequest);
+        }catch (Exception e){
+            Log.i("MainActivity", e.toString());
+            Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void getOpponents(){
+        //TODO ADD INFO
+        try {
+            if(mainRequestQueue == null){
+                mainRequestQueue = Volley.newRequestQueue(getApplicationContext());
+            }
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/getPlayersInGame.php";
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                if(response != null){
+                                    JSONArray playerResponse = response.getJSONArray("array");
+                                    Player opponent;
+                                    for(int i =0; i < playerResponse.length(); i++){
+                                        JSONObject row = playerResponse.getJSONObject(i);
+                                        opponent = new Player(row.getInt("id"), row.getString("name"), row.getInt("turn"));
+                                        if(opponent.id != currPlayer.id){
+                                            opponents.add(opponent);
+                                        }
+                                    }
+                                }
+                            } catch(Exception ex) {
+                                System.out.println(ex.toString());
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.i("MainActivity", error.toString());
+                            System.out.println("Error");
+                        }
+                    });
+            mainRequestQueue.add(jsObjRequest);
+        }catch (Exception e){
+            Log.i("MainActivity", e.toString());
+            Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void drawCards(){
+        /* TODO Add draw cards back into the game at status change to 1
+        //drawable resources
+        TypedArray cardResources = getResources().obtainTypedArray(R.array.my_cards);
+        TypedArray handResources = getResources().obtainTypedArray(R.array.my_hand);
+
+        //Full Deck of cards to draw from
+        currDeck = new ArrayList<>();
+        for(int i= 0; i < 52; i++){
+            currDeck.add(i);
+        }
+
+        //get the trump card
+        Random r = new Random();
+        trumpId = r.nextInt(currDeck.size());
+        ((ImageView)findViewById(R.id.image_trumpCard)).setImageResource(cardResources.getResourceId(trumpId, 0));
+        //get the hand
+        for(int num = 0; num < 10; num++){
+            int temp = r.nextInt(currDeck.size());
+            currHand.add(currDeck.get(temp)); //Add to the current hand
+            currDeck.remove(Integer.valueOf(temp)); //Want to remove the Integer 7, not spot 7.
+            ((ImageView)findViewById(handResources.getResourceId(num, 0))).setImageResource(cardResources.getResourceId(temp, 0));
+            (findViewById(handResources.getResourceId(num, 0))).setTag(temp);
+        }
+
+        */
+        //welcome the new user
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        TextView myScore = (TextView) findViewById(R.id.text_score1);
-        myScore.setText(currScore);
-        //drawable resources
-        TypedArray cardResources = getResources().obtainTypedArray(R.array.my_cards);
-        TypedArray handResources = getResources().obtainTypedArray(R.array.my_hand);
-        //put cards into place
-        ((ImageView)findViewById(R.id.image_trumpCard)).setImageResource(cardResources.getResourceId(trumpId, 0));
-        int i;
-        for(i = 0; i < currHand.size(); i++){
-            ((ImageView)findViewById(handResources.getResourceId(i, 0))).setImageResource(cardResources.getResourceId(currHand.get(i), 0));
-            (findViewById(handResources.getResourceId(i, 0))).setTag(currHand.get(i));
-        }
-        for(; i < 10; i++){
-            ImageView temp = (ImageView)findViewById(handResources.getResourceId(i, 0));
-            ((LinearLayout) temp.getParent()).removeView(temp);
-        }
-        //set up specifics for landscape/portrait
+        //TODO Add back onResume stuff
+
+        //make chatFragment if horizontal view
         if(getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE){
-            TextView chatWindow = (TextView) findViewById(text_chat);
-            chatWindow.setText(chatLog);
-        }
-        if(bidding) {
-            biddingFragment.addValues(10);
-        }else{
-            TypedArray tableResources = getResources().obtainTypedArray(R.array.my_table_cards);
-            for(int currTableIndex = 0; currTableIndex < currTable.size(); currTableIndex++){
-                ((ImageView) findViewById(tableResources.getResourceId(currTableIndex, 0))).setImageResource(cardResources.getResourceId(currTable.get(currTableIndex), 0));
-            }
+            chatFragment = ChatFragment.newInstance(currPlayer, chatLog);
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.replace(R.id.frame_chat, chatFragment);
+            fragmentTransaction.commit();
         }
     }
 
     public void onSaveInstanceState(Bundle outState){
-        outState.putString("username", currUser);
-        outState.putInt("trumpCard", trumpId);
-        outState.putBoolean("bidding", bidding);
-        outState.putIntegerArrayList("currHand", currHand);
-        outState.putIntegerArrayList("currDeck", currDeck);
-        outState.putIntegerArrayList("currTable", currTable);
-        outState.putString("currScore", currScore);
-        outState.putString("chatLog", chatLog);
-    }
-
-    //Add a chat into the
-    public void addChat(View v){
-        //add the text to the correct location and clear out the edittext
-        EditText text = (EditText) findViewById(R.id.editText_chat);
-        String addText = text.getText().toString();
-        text.setText("");
-        TextView chatWindow = (TextView) findViewById(text_chat);
-        chatWindow.append(currUser + ": " + addText + "\n");
-        chatLog = chatWindow.getText().toString();
+        /*TODO Make sure this is right*/
+        outState.putSerializable("currPlayer", currPlayer);
+        outState.putSerializable("opponents", opponents);
+        outState.putSerializable("currGame", currGame);
+        outState.putSerializable("trumpCard", trumpCard);
+        outState.putSerializable("currTableCards", currTableCards);
+        outState.putSerializable("currTableDeck", currTableDeck);
+        outState.putStringArrayList("chatLog", chatLog);
+        if(currGame.status == 1){
+            outState.putInt("biddingNumber", biddingNumber);
+        }
     }
 
     public void makeBid(View v){
+        /*
         String selectedBid = ((Spinner)findViewById(R.id.spinner_bid)).getSelectedItem().toString();
         TextView myScore = (TextView) findViewById(R.id.text_score1);
         String message = currUser + "\n" + selectedBid;
@@ -177,10 +254,12 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
         fragmentTransaction.commit();
         //ensure that the bidding phase is over
         bidding = false;
-}
+        */
+    }
 
     public void changeBackground(View v){
-        if(!bidding) {
+            /*
+        if(currGame.status == 1) {
             if (selected == null) {
                 //if no card were chosen yet
                 v.setBackgroundColor(Color.parseColor("#33b5e5"));
@@ -197,7 +276,8 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                         currTable.add((Integer) v.getTag());
 
                         //remove card from hand
-                        currHand.remove(v.getTag());
+                        //TODO THIS PROBABLY WONT WORK
+                        currPlayer.hand.remove(v.getTag());
                         ((LinearLayout) v.getParent()).removeView(v);
                     }
                 } else {
@@ -208,5 +288,12 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                 }
             }
         }
+        */
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+
     }
 }
