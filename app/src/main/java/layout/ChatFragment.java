@@ -37,7 +37,6 @@ public class ChatFragment extends Fragment {
         // Required empty public constructor
     }
 
-    // TODO: Rename and change types and number of parameters
     public static ChatFragment newInstance(Player player, ArrayList<String> chatLog) {
         ChatFragment chatFragment = new ChatFragment();
         Bundle args = new Bundle();

@@ -71,8 +71,8 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.82"
                 android:id="@+id/frame_layout_scoreboard"
-                android:background="@drawable/scoreboard_border" />
-
+                android:background="@drawable/scoreboard_border"
+                android:baselineAligned="false" />
         </LinearLayout>
 
         <LinearLayout
@@ -154,8 +154,7 @@
                 android:id="@+id/image_card10"
                 android:layout_weight=".1"
                 android:onClick="changeBackground" />
+
         </LinearLayout>
-
     </LinearLayout>
-
 </LinearLayout>

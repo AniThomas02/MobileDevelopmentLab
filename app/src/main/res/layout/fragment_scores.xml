@@ -3,45 +3,40 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:baselineAligned="false">
-    <ListView
+    android:baselineAligned="false"
+    android:id="@+id/layout_scores">
+    <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/list_score1"
+        android:id="@+id/text_score1"
         android:layout_weight=".2"
         android:textAlignment="center" />
 
-    <ListView
+    <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/list_score2"
+        android:id="@+id/text_score2"
         android:layout_weight=".2"
         android:textAlignment="center" />
 
-    <ListView
+    <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/list_score3"
+        android:id="@+id/text_score3"
         android:layout_weight=".2"
         android:textAlignment="center" />
 
-    <ListView
+    <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/list_score4"
+        android:id="@+id/text_score4"
         android:layout_weight=".2"
         android:textAlignment="center" />
 
-    <ListView
+    <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/list_score5"
+        android:id="@+id/text_score5"
         android:layout_weight=".2"
-        android:textAlignment="center"
-        android:singleLine="false" />
+        android:textAlignment="center" />
 </LinearLayout>

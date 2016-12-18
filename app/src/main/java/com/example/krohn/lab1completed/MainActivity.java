@@ -1,8 +1,12 @@
 package com.example.krohn.lab1completed;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,13 +29,16 @@ import java.util.ArrayList;
 
 import layout.BiddingFragment;
 import layout.ChatFragment;
+import layout.ScoresFragment;
 import layout.TableFragment;
 
 public class MainActivity extends AppCompatActivity implements BiddingFragment.OnFragmentInteractionListener {
-    private RequestQueue mainRequestQueue;
+    public static GameService gameService;
+    public Intent serviceIntent;
+    public static RequestQueue requestQueue;
     //instance variables - players
     private Player currPlayer;
-    private ArrayList<Player> opponents;
+    private ArrayList<Player> players;
     //private ImageView selected;
 
     //gameStatus: 0 = waiting for players, 1 = bidding, 2 = playing cards
@@ -45,9 +52,14 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
     private BiddingFragment biddingFragment;
     private TableFragment tableFragment;
     private ChatFragment chatFragment;
+    private ScoresFragment scoresFragment;
 
     //bidding
     private int biddingNumber;
+
+    //recievers
+    private StatusReceiver statusReceiver;
+    private PlayerReceiver playerReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +77,8 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
             currPlayer.scores.add(currPlayer.name);
             currGame = (Game) gameIntent.getSerializableExtra("game");
 
-            getOpponents();
+            players = new ArrayList<>();
+            getPlayers();
 
             //start status 0, because anytime you join a game it will be 0 until you update
             currTableCards = new ArrayList<>();
@@ -76,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
         } else {
             //grab all saved variables
             currPlayer = (Player) savedInstanceState.getSerializable("currPlayer");
-            opponents = (ArrayList<Player>) savedInstanceState.getSerializable("opponents");
+            players = (ArrayList<Player>) savedInstanceState.getSerializable("players");
             currGame = (Game) savedInstanceState.getSerializable("currGame");
             trumpCard = (Card) savedInstanceState.getSerializable("trumpCard");
             currTableCards = (ArrayList<Card>) savedInstanceState.getSerializable("currTableCards");
@@ -87,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
             }
         }
         Toast.makeText(getApplicationContext(), "Welcome, " + currPlayer.name + "!", Toast.LENGTH_SHORT).show();
+
 
         if(currGame.status == 0){
             TextView trump = (TextView) findViewById(R.id.textView_trump);
@@ -104,13 +118,21 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
             fragmentTransaction.replace(R.id.frame_layout_table, tableFragment);
             fragmentTransaction.commit();
         }
+        scoresFragment = ScoresFragment.newInstance(players);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.frame_layout_scoreboard, scoresFragment);
+        if(getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE){
+            chatFragment = ChatFragment.newInstance(currPlayer, chatLog);
+            fragmentTransaction.replace(R.id.frame_chat, chatFragment);
+        }
+        fragmentTransaction.commit();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
     private void getChatLog(){
         try {
-            if(mainRequestQueue == null){
-                mainRequestQueue = Volley.newRequestQueue(getApplicationContext());
+            if(requestQueue == null){
+                requestQueue = Volley.newRequestQueue(getApplicationContext());
             }
             String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/getChatLog.php";
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
@@ -135,18 +157,17 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                             System.out.println("Error");
                         }
                     });
-            mainRequestQueue.add(jsObjRequest);
+            requestQueue.add(jsObjRequest);
         }catch (Exception e){
             Log.i("MainActivity", e.toString());
             Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void getOpponents(){
-        //TODO ADD INFO
+    private void getPlayers(){
         try {
-            if(mainRequestQueue == null){
-                mainRequestQueue = Volley.newRequestQueue(getApplicationContext());
+            if(requestQueue == null){
+                requestQueue = Volley.newRequestQueue(getApplicationContext());
             }
             String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/getPlayersInGame.php";
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
@@ -156,13 +177,12 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                             try {
                                 if(response != null){
                                     JSONArray playerResponse = response.getJSONArray("array");
-                                    Player opponent;
+                                    Player player;
                                     for(int i =0; i < playerResponse.length(); i++){
                                         JSONObject row = playerResponse.getJSONObject(i);
-                                        opponent = new Player(row.getInt("id"), row.getString("name"), row.getInt("turn"));
-                                        if(opponent.id != currPlayer.id){
-                                            opponents.add(opponent);
-                                        }
+                                        player = new Player(row.getInt("id"), row.getString("name"), row.getInt("turn"));
+                                        player.scores.add( row.getString("name"));
+                                        players.add(player);
                                     }
                                 }
                             } catch(Exception ex) {
@@ -176,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                             System.out.println("Error");
                         }
                     });
-            mainRequestQueue.add(jsObjRequest);
+            requestQueue.add(jsObjRequest);
         }catch (Exception e){
             Log.i("MainActivity", e.toString());
             Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
@@ -216,20 +236,29 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
     public void onResume(){
         super.onResume();
         //TODO Add back onResume stuff
+    }
 
-        //make chatFragment if horizontal view
-        if(getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE){
-            chatFragment = ChatFragment.newInstance(currPlayer, chatLog);
-            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.frame_chat, chatFragment);
-            fragmentTransaction.commit();
-        }
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        gameService = new GameService();
+        serviceIntent = new Intent(getApplicationContext(), GameService.class);
+        serviceIntent.putExtra("playerId", currPlayer.id);
+        serviceIntent.putExtra("gameId", currGame.id);
+        startService(serviceIntent);
+        GameService.imAlive = true;
+
+        statusReceiver = new StatusReceiver();
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(statusReceiver, new IntentFilter("statusChange"));
+        playerReceiver = new PlayerReceiver();
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(playerReceiver, new IntentFilter("playerFilter"));
     }
 
     public void onSaveInstanceState(Bundle outState){
         /*TODO Make sure this is right*/
         outState.putSerializable("currPlayer", currPlayer);
-        outState.putSerializable("opponents", opponents);
+        outState.putSerializable("players", players);
         outState.putSerializable("currGame", currGame);
         outState.putSerializable("trumpCard", trumpCard);
         outState.putSerializable("currTableCards", currTableCards);
@@ -294,6 +323,54 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
     @Override
     public void onStop(){
         super.onStop();
+        GameService.imAlive = false;
+    }
 
+    class PlayerReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent data){
+            ArrayList<Player> updatedPlayers = (ArrayList<Player>)data.getSerializableExtra("players");
+            if(updatedPlayers != null) {
+                boolean contained;
+                for (Player rPlayer : updatedPlayers) {
+                    contained = false;
+                    for(Player currPlayer : players){
+                        if(currPlayer.id == rPlayer.id){
+                            contained = true;
+                            currPlayer.scores = rPlayer.scores;
+                        }
+                    }
+                    if(!contained){
+                        players.add(rPlayer);
+                    }
+                }
+                if(scoresFragment != null){
+                    scoresFragment.updateScores(players);
+                }
+            }
+        }
+    }
+
+    class StatusReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent data){
+            int updatedStatus = data.getIntExtra("status", currGame.status);
+            if(updatedStatus != currGame.status){
+                currGame.status = updatedStatus;
+                changeStatus();
+            }
+        }
+    }
+
+    public void changeStatus(){
+        if(currGame.status == 1){
+            Toast.makeText(getApplicationContext(), "Bidding", Toast.LENGTH_SHORT).show();
+        }else if (currGame.status == 2){
+            Toast.makeText(getApplicationContext(), "Playing Round", Toast.LENGTH_SHORT).show();
+        }else if (currGame.status == 3){
+
+        }else if (currGame.status == 4){
+
+        }
     }
 }

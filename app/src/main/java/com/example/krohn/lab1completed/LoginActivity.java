@@ -333,6 +333,7 @@ public class LoginActivity extends AppCompatActivity{
             }
             JSONObject params = new JSONObject();
             params.put("id", player.id);
+            params.put("turnNumber", player.turnNumber);
             String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/addPlayerToGame.php";
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.POST, url, params, new Response.Listener<JSONObject>() {
@@ -342,6 +343,8 @@ public class LoginActivity extends AppCompatActivity{
                                 int affected = response.getInt("affected");
                                 if(affected > 0 ){
                                     sendToGame(player, game);
+                                }else{
+                                    Toast.makeText(getApplicationContext(), "Already in a game.", Toast.LENGTH_SHORT).show();
                                 }
                             } catch(Exception ex) {
                                 Toast.makeText(getApplicationContext(), "Couldn't add player to game :(", Toast.LENGTH_SHORT).show();
@@ -371,7 +374,7 @@ public class LoginActivity extends AppCompatActivity{
     }
     //endregion
 
-    //region LocalStuff
+    //region LOCAL_DB
     private long addUserInformationToLocal(String username, String password){
         MyDBContract.MyDbHelper myDbHelper = new MyDBContract.MyDbHelper(getApplicationContext());
         SQLiteDatabase db = myDbHelper.getWritableDatabase();
