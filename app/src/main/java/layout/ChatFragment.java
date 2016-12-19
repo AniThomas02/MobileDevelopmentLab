@@ -57,6 +57,13 @@ public class ChatFragment extends Fragment {
     public void onStart(){
         super.onStart();
 
+        while(getView().findViewById(R.id.button_sendText) == null){
+            try {
+                Thread.sleep(4000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         Button addChatButton = (Button) getView().findViewById(R.id.button_sendText);
         addChatButton.setOnClickListener(new View.OnClickListener(){
             @Override

@@ -46,13 +46,10 @@ public class GameService extends IntentService{
             }
             while (imAlive){
                 Thread.sleep(6000);
-                checkGameStatus();
-                if(gameStatus == 0){
-                    searchForPlayers();
-                }else if (gameStatus == 1){
-
-                }else if (gameStatus == 2){
-
+                getGame();
+                grabPlayers();
+                if(gameStatus != 0) {
+                    getTable();
                 }
             }
         }catch (Exception e){
@@ -60,24 +57,26 @@ public class GameService extends IntentService{
         }
     }
 
-    private void checkGameStatus(){
+    private void getGame(){
         try {
             if(requestQueue == null){
                 requestQueue = Volley.newRequestQueue(getApplicationContext());
             }
-            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/checkStatus.php";
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/getGame.php";
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
                                 int status = response.getInt("status");
-                                if(status != gameStatus){
+                                int playerTurn = response.getInt("playerTurn");
+                                if(status != gameStatus) {
                                     gameStatus = status;
-                                    Intent statusChange = new Intent("statusChange");
-                                    statusChange.putExtra("status", status);
-                                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(statusChange);
                                 }
+                                Intent statusChange = new Intent("statusFilter");
+                                statusChange.putExtra("status", status);
+                                statusChange.putExtra("playerTurn", playerTurn);
+                                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(statusChange);
                             }catch (Exception error){
                                 Log.i("GameService", error.toString());
                                 System.out.println("Error: " + error);
@@ -92,12 +91,12 @@ public class GameService extends IntentService{
                     });
             requestQueue.add(jsObjRequest);
         }catch (Exception e){
-            Log.i("PrivateEventActivity", e.toString());
-            Toast.makeText(getApplicationContext(), "Error Accessing DB for events.", Toast.LENGTH_SHORT).show();
+            Log.i("GameService", e.toString());
+            Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void searchForPlayers(){
+    private void grabPlayers(){
         try {
             if(requestQueue == null){
                 requestQueue = Volley.newRequestQueue(getApplicationContext());
@@ -111,6 +110,7 @@ public class GameService extends IntentService{
                                 if(response != null){
                                     JSONArray playerResponse = response.getJSONArray("playerList");
                                     JSONArray statusResponse = response.getJSONArray("statusList");
+                                    JSONArray handResponse = response.getJSONArray("handList");
                                     Player player;
                                     String score;
                                     ArrayList<Player> players = new ArrayList<>();
@@ -123,6 +123,18 @@ public class GameService extends IntentService{
                                             if(player.id == statusRow.getInt("playerId")){
                                                 score = statusRow.getString("contents");
                                                 player.scores.add(score);
+                                            }
+                                        }
+                                        for(int k = 0; k < handResponse.length(); k++){
+                                            JSONObject handRow = handResponse.getJSONObject(k);
+                                            if(player.id == handRow.getInt("playerId")){
+                                                Card tempCard;
+                                                for(int m = 1; m <= 10; m++){
+                                                    tempCard = new Card(handRow.getInt("card" + m));
+                                                    if(tempCard.id != -1){
+                                                        player.hand.add(tempCard);
+                                                    }
+                                                }
                                             }
                                         }
                                         players.add(player);
@@ -144,10 +156,51 @@ public class GameService extends IntentService{
                     });
             requestQueue.add(jsObjRequest);
         }catch (Exception e){
-            Log.i("MainActivity", e.toString());
+            Log.i("GameService", e.toString());
             Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void function(){}
+
+
+    private void getTable(){
+        try {
+            if(requestQueue == null){
+                requestQueue = Volley.newRequestQueue(getApplicationContext());
+            }
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/getTable.php";
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                int trump = response.getInt("trump");
+                                ArrayList<Card> tableCards = new ArrayList<>();
+                                for(int i = 1; i <= 5; i++){
+                                    if(response.getInt("table" + i) != -1){
+                                        tableCards.add(new Card(response.getInt("table" + i)));
+                                    }
+                                }
+                                Intent tableIntent = new Intent("tableFilter");
+                                tableIntent.putExtra("trump", trump);
+                                tableIntent.putExtra("table", tableCards);
+                                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(tableIntent);
+                            }catch (Exception error){
+                                Log.i("GameService", error.toString());
+                                System.out.println("Error: " + error);
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.i("GameService", error.toString());
+                            System.out.println("Error: " + error);
+                        }
+                    });
+            requestQueue.add(jsObjRequest);
+        }catch (Exception e){
+            Log.i("GameService", e.toString());
+            Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
+        }
+    }
 }

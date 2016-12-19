@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +14,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,23 +31,27 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import layout.BiddingFragment;
 import layout.ChatFragment;
 import layout.ScoresFragment;
 import layout.TableFragment;
 
-public class MainActivity extends AppCompatActivity implements BiddingFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity {
+    public static int MAX_PLAYERS = 2;
+    public static RequestQueue requestQueue;
     public static GameService gameService;
     public Intent serviceIntent;
-    public static RequestQueue requestQueue;
+    public int handSize;
+    public int turnStart;
     //instance variables - players
     private Player currPlayer;
     private ArrayList<Player> players;
     //private ImageView selected;
 
     //gameStatus: 0 = waiting for players, 1 = bidding, 2 = playing cards
-    private Game currGame;
+    public static Game currGame;
 
     //table instance variables
     private Card trumpCard;
@@ -76,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
             currPlayer = (Player) gameIntent.getSerializableExtra("player");
             currPlayer.scores.add(currPlayer.name);
             currGame = (Game) gameIntent.getSerializableExtra("game");
+            handSize = 10;
+            turnStart = 0;
 
             players = new ArrayList<>();
             getPlayers();
@@ -101,25 +112,22 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
         }
         Toast.makeText(getApplicationContext(), "Welcome, " + currPlayer.name + "!", Toast.LENGTH_SHORT).show();
 
-
+        TextView trump = (TextView) findViewById(R.id.textView_trump);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         if(currGame.status == 0){
-            TextView trump = (TextView) findViewById(R.id.textView_trump);
             trump.setText("Waiting for players...");
         }else if(currGame.status == 1){
+            trump.setText("Trump: ");
             //create the bidding fragment
-            biddingFragment = new BiddingFragment();
-            biddingFragment.setArguments(getIntent().getExtras());
-            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.add(R.id.frame_layout_table, biddingFragment);
+            biddingFragment = BiddingFragment.newInstance(currPlayer, handSize);
+            fragmentTransaction.replace(R.id.frame_layout_table, biddingFragment);
             fragmentTransaction.commit();
         }else if(currGame.status == 2){
-            tableFragment = TableFragment.newInstance();
-            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            tableFragment = TableFragment.newInstance(currTableCards);
             fragmentTransaction.replace(R.id.frame_layout_table, tableFragment);
             fragmentTransaction.commit();
         }
         scoresFragment = ScoresFragment.newInstance(players);
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout_scoreboard, scoresFragment);
         if(getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE){
             chatFragment = ChatFragment.newInstance(currPlayer, chatLog);
@@ -203,39 +211,14 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
         }
     }
 
-    private void drawCards(){
-        /* TODO Add draw cards back into the game at status change to 1
-        //drawable resources
-        TypedArray cardResources = getResources().obtainTypedArray(R.array.my_cards);
-        TypedArray handResources = getResources().obtainTypedArray(R.array.my_hand);
-
-        //Full Deck of cards to draw from
-        currDeck = new ArrayList<>();
-        for(int i= 0; i < 52; i++){
-            currDeck.add(i);
-        }
-
-        //get the trump card
-        Random r = new Random();
-        trumpId = r.nextInt(currDeck.size());
-        ((ImageView)findViewById(R.id.image_trumpCard)).setImageResource(cardResources.getResourceId(trumpId, 0));
-        //get the hand
-        for(int num = 0; num < 10; num++){
-            int temp = r.nextInt(currDeck.size());
-            currHand.add(currDeck.get(temp)); //Add to the current hand
-            currDeck.remove(Integer.valueOf(temp)); //Want to remove the Integer 7, not spot 7.
-            ((ImageView)findViewById(handResources.getResourceId(num, 0))).setImageResource(cardResources.getResourceId(temp, 0));
-            (findViewById(handResources.getResourceId(num, 0))).setTag(temp);
-        }
-
-        */
-        //welcome the new user
-    }
-
     @Override
     public void onResume(){
         super.onResume();
-        //TODO Add back onResume stuff
+
+        if(currGame.status == 1){
+            biddingFragment.addValues(handSize);
+            TextView trump = (TextView) findViewById(R.id.textView_trump);
+        }
     }
 
     @Override
@@ -250,12 +233,13 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
         GameService.imAlive = true;
 
         statusReceiver = new StatusReceiver();
-        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(statusReceiver, new IntentFilter("statusChange"));
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(statusReceiver, new IntentFilter("statusFilter"));
         playerReceiver = new PlayerReceiver();
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(playerReceiver, new IntentFilter("playerFilter"));
     }
 
     public void onSaveInstanceState(Bundle outState){
+
         /*TODO Make sure this is right*/
         outState.putSerializable("currPlayer", currPlayer);
         outState.putSerializable("players", players);
@@ -270,25 +254,109 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
     }
 
     public void makeBid(View v){
-        /*
-        String selectedBid = ((Spinner)findViewById(R.id.spinner_bid)).getSelectedItem().toString();
-        TextView myScore = (TextView) findViewById(R.id.text_score1);
-        String message = currUser + "\n" + selectedBid;
-        myScore.setText(message);
+        if(currGame.playerTurn == currPlayer.turnNumber){
+            String selectedBid = ((Spinner)findViewById(R.id.spinner_bid)).getSelectedItem().toString();
+            addBid(selectedBid);
+            //switch the bidding screen to the table
+            tableFragment = TableFragment.newInstance(currTableCards);
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.replace(R.id.frame_layout_table, tableFragment);
+            fragmentTransaction.commitAllowingStateLoss();
+        }else{
+            Toast.makeText(getApplicationContext(), "It is not your turn to bid yet!", Toast.LENGTH_SHORT).show();
+        }
+    }
 
-        //switch the bidding screen to the table
-        tableFragment = TableFragment.newInstance();
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.table_Frame, tableFragment);
-        fragmentTransaction.commit();
-        //ensure that the bidding phase is over
-        bidding = false;
-        */
+    public void addBid(String bid){
+        try {
+            if(requestQueue == null){
+                requestQueue = Volley.newRequestQueue(getApplicationContext());
+            }
+            JSONObject params = new JSONObject();
+            params.put("playerId", currPlayer.id);
+            params.put("score", bid);
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/addScore.php";
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.POST, url, params, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                if(response != null){
+                                    int affected = response.getInt("affected");
+                                    if(affected >= 0){
+                                        if(currGame.playerTurn < MAX_PLAYERS-1){
+                                           currGame.playerTurn++;
+                                        }else{
+                                            currGame.playerTurn = 0;
+                                        }
+                                        updateTurn(currGame.playerTurn);
+                                    }else{
+                                        Toast.makeText(getApplicationContext(), "Error adding bid :(", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            } catch(Exception ex) {
+                                System.out.println(ex.toString());
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.i("MainActivity", error.toString());
+                            System.out.println("Error");
+                        }
+                    });
+            requestQueue.add(jsObjRequest);
+        }catch (Exception e){
+            Log.i("MainActivity", e.toString());
+            Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void updateTurn(int turn){
+        try {
+            if(requestQueue == null){
+                requestQueue = Volley.newRequestQueue(getApplicationContext());
+            }
+            JSONObject params = new JSONObject();
+            params.put("turnNumber", turn);
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/updateTurn.php";
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.POST, url, params, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                if(response != null){
+                                    int affected = response.getInt("affected");
+                                    if(affected >= 0){
+                                        if(currGame.playerTurn == turnStart){
+                                            currGame.status++;
+                                            changeDatabaseStatus(currGame.status);
+                                        }
+                                    }else{
+                                        Toast.makeText(getApplicationContext(), "Error adding bid :(", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            } catch(Exception ex) {
+                                System.out.println(ex.toString());
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.i("MainActivity", error.toString());
+                            System.out.println("Error");
+                        }
+                    });
+            requestQueue.add(jsObjRequest);
+        }catch (Exception e){
+            Log.i("MainActivity", e.toString());
+            Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void changeBackground(View v){
+        if(currGame.status == 2 && currGame.playerTurn == currPlayer.turnNumber) {
             /*
-        if(currGame.status == 1) {
             if (selected == null) {
                 //if no card were chosen yet
                 v.setBackgroundColor(Color.parseColor("#33b5e5"));
@@ -316,8 +384,10 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                     selected = (ImageView) v;
                 }
             }
+            */
+        }else{
+            Toast.makeText(getApplicationContext(), "It isn't time to play a card yet.", Toast.LENGTH_SHORT).show();
         }
-        */
     }
 
     @Override
@@ -330,14 +400,21 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
         @Override
         public void onReceive(Context context, Intent data){
             ArrayList<Player> updatedPlayers = (ArrayList<Player>)data.getSerializableExtra("players");
+
             if(updatedPlayers != null) {
+                if(players.size() != updatedPlayers.size()){
+                    if(updatedPlayers.size() == MAX_PLAYERS){
+                        changeDatabaseStatus(1);
+                    }
+                }
                 boolean contained;
                 for (Player rPlayer : updatedPlayers) {
                     contained = false;
-                    for(Player currPlayer : players){
-                        if(currPlayer.id == rPlayer.id){
+                    for(Player currentPlayer : players){
+                        if(currentPlayer.id == rPlayer.id){
                             contained = true;
-                            currPlayer.scores = rPlayer.scores;
+                            currentPlayer.scores = rPlayer.scores;
+                            currentPlayer.hand = rPlayer.hand;
                         }
                     }
                     if(!contained){
@@ -347,14 +424,78 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
                 if(scoresFragment != null){
                     scoresFragment.updateScores(players);
                 }
+                if(currGame.status != 0){
+                    refreshHand();
+                }
             }
         }
+    }
+
+    public void changeDatabaseStatus(int newId){
+        try {
+            if(requestQueue == null){
+                requestQueue = Volley.newRequestQueue(getApplicationContext());
+            }
+            JSONObject params = new JSONObject();
+            params.put("statusId", newId);
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/updateStatus.php";
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.POST, url, params, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                if(response != null){
+                                    response.getInt("affected");
+                                }
+                            } catch(Exception ex) {
+                                System.out.println(ex.toString());
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.i("MainActivity", error.toString());
+                            System.out.println("Error");
+                        }
+                    });
+            requestQueue.add(jsObjRequest);
+        }catch (Exception e){
+            Log.i("MainActivity", e.toString());
+            Toast.makeText(getApplicationContext(), "Error Accessing DB.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void refreshTrump(){
+        TypedArray cardResources = getResources().obtainTypedArray(R.array.my_cards);
+        TextView trumpWords = (TextView) findViewById(R.id.textView_trump);
+        trumpWords.setText("Trump: ");
+        ((ImageView)findViewById(R.id.image_trumpCard)).setImageResource(cardResources.getResourceId(trumpCard.id, 0));
+        cardResources.recycle();
+    }
+
+    public void refreshHand(){
+        for (Player player: players){
+            if(player.id == currPlayer.id){
+                currPlayer = player;
+            }
+        }
+        TypedArray cardResources = getResources().obtainTypedArray(R.array.my_cards);
+        TypedArray handResources = getResources().obtainTypedArray(R.array.my_hand);
+        Card temp;
+        for(int i = 0; i < currPlayer.hand.size(); i++){
+            temp = currPlayer.hand.get(i);
+            ((ImageView)findViewById(handResources.getResourceId(i, 0))).setImageResource(cardResources.getResourceId(temp.id, 0));
+            (findViewById(handResources.getResourceId(i, 0))).setTag(temp.id);
+        }
+        cardResources.recycle();
+        handResources.recycle();
     }
 
     class StatusReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent data){
             int updatedStatus = data.getIntExtra("status", currGame.status);
+            currGame.playerTurn = data.getIntExtra("playerTurn", currGame.playerTurn);
             if(updatedStatus != currGame.status){
                 currGame.status = updatedStatus;
                 changeStatus();
@@ -364,13 +505,140 @@ public class MainActivity extends AppCompatActivity implements BiddingFragment.O
 
     public void changeStatus(){
         if(currGame.status == 1){
-            Toast.makeText(getApplicationContext(), "Bidding", Toast.LENGTH_SHORT).show();
+            if(currPlayer.turnNumber == 0){
+                drawCards();
+            }
+            biddingFragment = BiddingFragment.newInstance(currPlayer, handSize);
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.add(R.id.frame_layout_table, biddingFragment);
+            fragmentTransaction.commitAllowingStateLoss();
         }else if (currGame.status == 2){
             Toast.makeText(getApplicationContext(), "Playing Round", Toast.LENGTH_SHORT).show();
         }else if (currGame.status == 3){
-
+            Toast.makeText(getApplicationContext(), "New Round", Toast.LENGTH_SHORT).show();
         }else if (currGame.status == 4){
+            Toast.makeText(getApplicationContext(), "End Game", Toast.LENGTH_SHORT).show();
+        }
+    }
 
+    private void drawCards(){
+        //drawable resources
+        TypedArray cardResources = getResources().obtainTypedArray(R.array.my_cards);
+
+        //Full Deck of cards to draw from
+        ArrayList<Integer> currDeck = new ArrayList<>();
+        for(int i= 0; i < 52; i++){
+            currDeck.add(i);
+        }
+
+        //get the trump card
+        Random r = new Random();
+        int nextCard = r.nextInt(currDeck.size());
+        trumpCard = new Card(nextCard);
+        addTrump(trumpCard.id);
+        currDeck.remove(currDeck.get(nextCard));
+        refreshTrump();
+        //get the hand
+        for(Player player: players){
+            player.hand.clear();
+            for(int num = 0; num < handSize; num++){
+                nextCard = r.nextInt(currDeck.size());
+                player.hand.add(new Card(currDeck.get(nextCard)));
+                currDeck.remove(Integer.valueOf(currDeck.get(nextCard)));
+            }
+            updateHand(player);
+        }
+    }
+
+    private void addTrump(int trump){
+        try {
+            if(requestQueue == null){
+                requestQueue = Volley.newRequestQueue(getApplicationContext());
+            }
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/updateTrump.php?trump=" + trump;
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                int affected = response.getInt("affected");
+                                if(affected <= 0) {
+                                    Toast.makeText(getApplicationContext(), "Trump not updated", Toast.LENGTH_SHORT).show();
+                                }
+                            } catch(Exception ex) {
+                                Toast.makeText(getApplicationContext(), "Error saving trump.", Toast.LENGTH_SHORT).show();
+                                System.out.println(ex.toString());
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.i("MainActivity", error.toString());
+                            System.out.println("Error");
+                        }
+                    });
+            requestQueue.add(jsObjRequest);
+        }catch (Exception e){
+            Log.i("MainActivity", e.toString());
+            Toast.makeText(getApplicationContext(), "Error accessing db.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateHand(final Player player){
+        try {
+            if (requestQueue == null) {
+                requestQueue = Volley.newRequestQueue(getApplicationContext());
+            }
+            JSONObject params = new JSONObject();
+            params.put("playerId", player.id);
+            for (int i = 0; i < 10; i++) {
+                if (i < player.hand.size()) {
+                    params.put("card" + i, player.hand.get(i).id);
+                } else {
+                    params.put("card" + i, -1);
+                }
+            }
+            String url = "http://webdev.cs.uwosh.edu/students/thomaa04/CardGameLiveServer/updateHand.php";
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.POST, url, params, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                int affected = response.getInt("affected");
+                                if(affected <= 0) {
+                                    Toast.makeText(getApplicationContext(), player.name +"'s hand not updated!", Toast.LENGTH_SHORT).show();
+                                }
+                            } catch(Exception ex) {
+                                Toast.makeText(getApplicationContext(), "Error updating hand.", Toast.LENGTH_SHORT).show();
+                                System.out.println(ex.toString());
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.i("MainActivity", error.toString());
+                            System.out.println("Error");
+                        }
+                    });
+            requestQueue.add(jsObjRequest);
+        }catch (Exception e){
+            Log.i("MainActivity", e.toString());
+            Toast.makeText(getApplicationContext(), "Error accessing db.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    class TableReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent data){
+            int trump = data.getIntExtra("trump", trumpCard.id);
+            if(trump != -1){
+                trumpCard = new Card(trump);
+                refreshTrump();
+            }
+            currTableCards = (ArrayList<Card>) data.getSerializableExtra("table");
+            if(tableFragment != null) {
+                tableFragment.updateTable(currTableCards);
+            }
         }
     }
 }

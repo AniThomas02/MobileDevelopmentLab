@@ -29,6 +29,7 @@ import org.json.JSONObject;
 public class LoginActivity extends AppCompatActivity{
     private RequestQueue myRequestQueue;
     public static int MAX_PLAYERS = 2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

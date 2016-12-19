@@ -1,6 +1,7 @@
 package layout;
 
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -13,13 +14,15 @@ import com.example.krohn.lab1completed.R;
 
 import java.util.ArrayList;
 
+import static com.example.krohn.lab1completed.MainActivity.currGame;
+
 /**
  * Created by Ani Thomas on 12/14/2016.
  */
 
 public class ScoresFragment extends Fragment {
     private ArrayList<Player> playersList;
-    private TypedArray scoreResources;
+    private View rootView;
 
     public ScoresFragment(){
         // Required empty public constructor
@@ -37,14 +40,15 @@ public class ScoresFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         playersList = (ArrayList<Player>) getArguments().getSerializable("playerList");
-        scoreResources = getResources().obtainTypedArray(R.array.scoring_table);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        rootView = inflater.inflate(R.layout.fragment_scores, container, false);
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_scores, container, false);
+        return rootView;
     }
 
     @Override
@@ -55,13 +59,14 @@ public class ScoresFragment extends Fragment {
     }
 
     public void updateScores(ArrayList<Player> updatedPlayers){
-        while(getView().findViewById(R.id.text_score1) == null){
+        while(rootView.findViewById(R.id.text_score1) == null){
             try {
                 Thread.sleep(4000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+        TypedArray scoreResources =  getResources().obtainTypedArray(R.array.scoring_table);
         playersList = updatedPlayers;
         TextView scoreView;
         for (Player player: playersList) {
@@ -70,6 +75,12 @@ public class ScoresFragment extends Fragment {
             for(String score: player.scores){
                 scoreView.append(score + "\n");
             }
+            if(player.turnNumber == currGame.playerTurn){
+                scoreView.setBackgroundColor(Color.parseColor("#c2dee8"));
+            }else{
+                scoreView.setBackgroundColor(Color.parseColor("#fff3f3f3"));
+            }
         }
+        scoreResources.recycle();
     }
 }
