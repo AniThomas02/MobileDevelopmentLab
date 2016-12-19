@@ -76,9 +76,9 @@ public class ScoresFragment extends Fragment {
                 scoreView.append(score + "\n");
             }
             if(player.turnNumber == currGame.playerTurn){
-                scoreView.setBackgroundColor(Color.parseColor("#c2dee8"));
+                scoreView.setBackgroundColor(Color.parseColor("#2DB82D"));
             }else{
-                scoreView.setBackgroundColor(Color.parseColor("#fff3f3f3"));
+                scoreView.setBackgroundColor(Color.parseColor("#DDDDDD"));
             }
         }
         scoreResources.recycle();

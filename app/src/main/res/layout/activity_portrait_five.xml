@@ -75,86 +75,11 @@
                 android:baselineAligned="false" />
         </LinearLayout>
 
-        <LinearLayout
-            android:orientation="horizontal"
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/layout_cards"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:id="@+id/layout_cards"
             android:layout_weight="2.16"
-            android:background="#5360ae"
-            android:baselineAligned="true">
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card1"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card2"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card3"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card4"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="New Text"
-                android:id="@+id/image_card5"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card6"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card7"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card8"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card9"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/image_card10"
-                android:layout_weight=".1"
-                android:onClick="changeBackground" />
-
-        </LinearLayout>
+            android:background="#5360ae"/>
     </LinearLayout>
 </LinearLayout>

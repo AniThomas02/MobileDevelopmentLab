@@ -11,6 +11,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -55,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
     //table instance variables
     private Card trumpCard;
+    private RecyclerView currHandView;
+    private CardAdapter currHandAdapter;
     private ArrayList<Card> currTableCards;
     private ArrayList<Card> currTableDeck;
     private ArrayList<String> chatLog;
@@ -69,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     //recievers
     private StatusReceiver statusReceiver;
     private PlayerReceiver playerReceiver;
+    private TableReceiver tableReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +99,13 @@ public class MainActivity extends AppCompatActivity {
             //start status 0, because anytime you join a game it will be 0 until you update
             currTableCards = new ArrayList<>();
             currTableDeck = new ArrayList<>();
+
+            currHandView = (RecyclerView) findViewById(R.id.layout_cards);
+            currHandAdapter = new CardAdapter(currPlayer.hand);
+            LinearLayoutManager horizontalLayoutManagaer
+                    = new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false);
+            currHandView.setLayoutManager(horizontalLayoutManagaer);
+            currHandView.setAdapter(currHandAdapter);
 
             chatLog = new ArrayList<>();
             getChatLog();
@@ -236,6 +248,8 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(statusReceiver, new IntentFilter("statusFilter"));
         playerReceiver = new PlayerReceiver();
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(playerReceiver, new IntentFilter("playerFilter"));
+        tableReceiver = new TableReceiver();
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(tableReceiver, new IntentFilter("tableFilter"));
     }
 
     public void onSaveInstanceState(Bundle outState){
@@ -425,7 +439,13 @@ public class MainActivity extends AppCompatActivity {
                     scoresFragment.updateScores(players);
                 }
                 if(currGame.status != 0){
-                    refreshHand();
+                    for (Player player: players){
+                        if(player.id == currPlayer.id){
+                            currPlayer = player;
+                        }
+                    }
+                    currHandAdapter.changeData(currPlayer.hand);
+                    //refreshHand();
                 }
             }
         }
@@ -512,6 +532,7 @@ public class MainActivity extends AppCompatActivity {
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
             fragmentTransaction.add(R.id.frame_layout_table, biddingFragment);
             fragmentTransaction.commitAllowingStateLoss();
+            Toast.makeText(getApplicationContext(), "Bidding", Toast.LENGTH_SHORT).show();
         }else if (currGame.status == 2){
             Toast.makeText(getApplicationContext(), "Playing Round", Toast.LENGTH_SHORT).show();
         }else if (currGame.status == 3){
@@ -522,9 +543,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void drawCards(){
-        //drawable resources
-        TypedArray cardResources = getResources().obtainTypedArray(R.array.my_cards);
-
         //Full Deck of cards to draw from
         ArrayList<Integer> currDeck = new ArrayList<>();
         for(int i= 0; i < 52; i++){
@@ -630,14 +648,18 @@ public class MainActivity extends AppCompatActivity {
     class TableReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent data){
-            int trump = data.getIntExtra("trump", trumpCard.id);
-            if(trump != -1){
-                trumpCard = new Card(trump);
-                refreshTrump();
-            }
-            currTableCards = (ArrayList<Card>) data.getSerializableExtra("table");
-            if(tableFragment != null) {
-                tableFragment.updateTable(currTableCards);
+            try {
+                int trump = data.getIntExtra("trump", -1);
+                if (trump != -1) {
+                    trumpCard = new Card(trump);
+                    refreshTrump();
+                }
+                currTableCards = (ArrayList<Card>) data.getSerializableExtra("table");
+                if (tableFragment != null) {
+                    tableFragment.updateTable(currTableCards);
+                }
+            }catch (Exception e) {
+                Log.i("MainActivity", e.toString());
             }
         }
     }

@@ -29,5 +29,8 @@ public class Card implements Serializable {
 
     private void getValue(){
         value = (id + 1) % 13;
+        if(value == 1){
+            value = 14;
+        }
     }
 }
